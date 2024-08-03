@@ -6,6 +6,7 @@ import ramana from '../images/p3.jpeg';
 import { toast } from 'react-toastify';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 //validation schema using Yup
 const validationSchema = Yup.object({
@@ -21,9 +22,9 @@ email: Yup.string()
   altmobileno: Yup.string()
     .required('Alternative mobile number is required')
     .matches(/^[0-9]{10}$/, 'Alternative mobile number must be exactly 10 digits'),
-  Address: Yup.string().required('Address is required'),
-  Batchno: Yup.string().required('Batch number is required'),
-  ModeOfInternship: Yup.string().required('This field is required'),
+  address: Yup.string().required('address is required'),
+  batchno: Yup.string().required('Batch number is required'),
+  modeOfInternship: Yup.string().required('This field is required'),
   belongedToVasaviFoundation: Yup.string().required('This field is required'),
   domain: Yup.string().required('Please select your domain'),
 });
@@ -37,21 +38,30 @@ const Registration = () => {
       email: '',
       mobileno: '',
       altmobileno: '',
-      Address: '',
+      address: '',
       domain: '',
-      Batchno: '',
-      ModeOfInternship: '',
+      batchno: '',
+      modeOfInternship: '',
       belongedToVasaviFoundation: '',
     },
     validationSchema,
-    onSubmit: (values, { resetForm }) => {
-      console.log(values);
-      resetForm();
-      toast.success("Registered successfully!",{
-        autoClose: 5000
-      });
-      navigate('/login');
-      sessionStorage.setItem('name', formik.values.fullName);
+    onSubmit: async (values, { resetForm }) => {
+      console.log("frontend"+values);
+      try {
+        const response = await axios.post('http://localhost:4001/register', values);
+        const { candidateId } = response.data;
+        console.log(candidateId);
+
+        toast.success(`Registered successfully!`, {
+          autoClose: 5000
+        });
+        
+        resetForm();
+        navigate('/login')
+      } catch (error) {
+        toast.error('Registration failed. Please try again.');
+        console.error('Error registering:', error);
+      }
     },
   });
 
@@ -163,16 +173,16 @@ const Registration = () => {
           </div>
           <div className="col-12 col-md-6 mb-3">
             <TextField
-              label="Address"
+              label="address"
               variant="outlined"
               className="w-100"
-              name="Address"
-              value={formik.values.Address}
+              name="address"
+              value={formik.values.address}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               required
-              error={formik.touched.Address && Boolean(formik.errors.Address)}
-              helperText={formik.touched.Address && formik.errors.Address}
+              error={formik.touched.address && Boolean(formik.errors.address)}
+              helperText={formik.touched.address && formik.errors.address}
               InputProps={{ className: 'fw-bold' }}
               InputLabelProps={{ className: 'fw-bold text-secondary' }}
             />
@@ -182,23 +192,23 @@ const Registration = () => {
               label="Batch No"
               variant="outlined"
               className="w-100"
-              name="Batchno"
-              value={formik.values.Batchno}
+              name="batchno"
+              value={formik.values.batchno}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               required
-              error={formik.touched.Batchno && Boolean(formik.errors.Batchno)}
-              helperText={formik.touched.Batchno && formik.errors.Batchno}
+              error={formik.touched.batchno && Boolean(formik.errors.batchno)}
+              helperText={formik.touched.batchno && formik.errors.batchno}
               InputProps={{ className: 'fw-bold' }}
               InputLabelProps={{ className: 'fw-bold text-secondary' }}
             />
           </div>
           <div className="col-12 col-md-6 mb-3">
-            <FormControl component="fieldset" className="w-100" error={formik.touched.ModeOfInternship && Boolean(formik.errors.ModeOfInternship)}>
+            <FormControl component="fieldset" className="w-100" error={formik.touched.modeOfInternship && Boolean(formik.errors.modeOfInternship)}>
               <FormLabel component="legend" className="fw-bold text-secondary">Mode of Internship</FormLabel>
               <RadioGroup
-                name="ModeOfInternship"
-                value={formik.values.ModeOfInternship}
+                name="modeOfInternship"
+                value={formik.values.modeOfInternship}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 row
@@ -206,8 +216,8 @@ const Registration = () => {
                 <FormControlLabel value="Online" control={<Radio />} label="Online" />
                 <FormControlLabel value="Offline" control={<Radio />} label="Offline" />
               </RadioGroup>
-              {formik.touched.ModeOfInternship && formik.errors.ModeOfInternship && (
-                <div className="text-danger">{formik.errors.ModeOfInternship}</div>
+              {formik.touched.modeOfInternship && formik.errors.modeOfInternship && (
+                <div className="text-danger">{formik.errors.modeOfInternship}</div>
               )}
             </FormControl>
           </div>

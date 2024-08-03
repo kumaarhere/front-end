@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container, Table } from 'react-bootstrap';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+
 import Cookies from 'js-cookie';
 import ramana from '../images/p3.jpeg';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+
 
 const JobPortal = () => {
   const navigate = useNavigate();
@@ -11,46 +16,42 @@ const JobPortal = () => {
     if (verified === undefined) {
       navigate('/login');
     }
-  })
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const [companies, setCompanies] = useState([]);
+  }, [navigate]);
 
-  const handleLanguageToggle = (language) => {
-    const updatedLanguage = selectedLanguage === language ? null : language;
-
-    setSelectedLanguage(updatedLanguage);
-
-
-    const dummyData = {
-      JavaScript: [
-        { name: 'Tech Innovators Inc.', appliedCount: 42 },
-        { name: 'CodeCrafters Ltd.', appliedCount: 55 },
-      ],
-      Python: [
-        { name: 'DataMasters Corp.', appliedCount: 37 },
-        { name: 'AI Pioneers Inc.', appliedCount: 29 },
-      ],
-      Java: [
-        { name: 'Enterprise Solutions Ltd.', appliedCount: 48 },
-        { name: 'Backend Builders LLC.', appliedCount: 53 },
-      ],
-      CSharp: [
-        { name: 'DotNet Developers Inc.', appliedCount: 34 },
-        { name: 'Sharp Coders Ltd.', appliedCount: 41 },
-      ],
-    };
-
-    setCompanies(updatedLanguage ? dummyData[updatedLanguage] : []);
-  };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [companies, setCompanies] = useState([
+    { id: 'JS001', name: 'Tech Innovators Inc.', appliedCount: 42, technology: 'JavaScript', lastDate: '2024-08-15', jobType: 'Full-Time', city: 'Pune' },
+    { id: 'JS002', name: 'CodeCrafters Ltd.', appliedCount: 55, technology: 'JavaScript', lastDate: '2024-08-20', jobType: 'Part-Time', city: 'Madurai' },
+    { id: 'PY001', name: 'DataMasters Corp.', appliedCount: 37, technology: 'Python', lastDate: '2024-09-01', jobType: 'Full-Time', city: 'Noida' },
+    { id: 'PY002', name: 'AI Pioneers Inc.', appliedCount: 29, technology: 'Python', lastDate: '2024-09-05', jobType: 'Contract', city: 'Bangelore' },
+    { id: 'JA001', name: 'Enterprise Solutions Ltd.', appliedCount: 48, technology: 'Java', lastDate: '2024-08-30', jobType: 'Full-Time', city: 'Hyderabad' },
+    { id: 'JA002', name: 'Backend Builders LLC.', appliedCount: 53, technology: 'Java', lastDate: '2024-09-10', jobType: 'Part-Time', city: 'Chennai' },
+    { id: 'CS001', name: 'DotNet Developers Inc.', appliedCount: 34, technology: 'C#', lastDate: '2024-08-25', jobType: 'Full-Time', city: 'Chennai' },
+    { id: 'CS002', name: 'Sharp Coders Ltd.', appliedCount: 41, technology: 'C#', lastDate: '2024-09-02', jobType: 'Contract', city: 'Mumbai' },
+  ]);
 
   const getUserInitials = (name) => {
+    if (!name) return 'RS';
     const initials = name.split(' ').map((n) => n[0]).join('');
     return initials.toUpperCase();
   };
 
+  const filteredCompanies = companies.filter((company) => {
+    const searchText = searchTerm.toLowerCase();
+    return (
+      company.id.toLowerCase().includes(searchText) ||
+      company.name.toLowerCase().includes(searchText) ||
+      company.technology.toLowerCase().includes(searchText) ||
+      company.lastDate.toLowerCase().includes(searchText) ||
+      company.jobType.toLowerCase().includes(searchText) ||
+      company.city.toLowerCase().includes(searchText) ||
+      company.appliedCount.toString().includes(searchText)
+    );
+  });
+
   return (
     <div>
-      <Navbar bg="light" expand="lg">
+      <Navbar bg="light" expand="lg" sticky="top">
         <Container>
           <Navbar.Brand href="#home">
             <img
@@ -65,7 +66,7 @@ const JobPortal = () => {
             <Nav className="ms-auto">
               <Nav.Link href="#about" className="fw-bold me-4 text-secondary">About</Nav.Link>
               <Nav.Link href="#applied" className="fw-bold me-4 text-secondary">Applied</Nav.Link>
-              <Nav.Link href="#profile" className="fw-bold me-4 text-secondary">Profile</Nav.Link>
+              <Nav.Link href="/dashboard/profile" className="fw-bold me-4 text-secondary">Profile</Nav.Link>
             </Nav>
             <Nav>
               <div className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center fw-bold" style={{ width: '50px', height: '50px' }}>
@@ -76,37 +77,62 @@ const JobPortal = () => {
         </Container>
       </Navbar>
 
-      <div className="container mt-5">
+      <Container className="mt-5">
         <h1 className="mb-4">IT Job Portal</h1>
-        <p className="mb-4">Welcome to our IT Job Portal. Select your preferred programming languages to see available job opportunities.</p>
+        <p className="mb-4">Welcome to our IT Job Portal. Use the search bar below to filter job opportunities.</p>
 
-        <div className="mb-4">
-          {['JavaScript', 'Python', 'Java', 'CSharp'].map((language) => (
-            <button
-              key={language}
-              className={`btn btn-outline-warning m-1 ${selectedLanguage === language ? 'active' : ''}`}
-              onClick={() => handleLanguageToggle(language)}
-            >
-              {language}
-            </button>
-          ))}
-        </div>
+        <TextField
+          className="mb-4 w-75 rounded"
+          placeholder="Search jobs by technology, job type, city etc.."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <i class="fa-solid fa-magnifying-glass fs-5"></i>
+              </InputAdornment>
+            ),
+          }}
+        />
 
         <div>
           <hr></hr>
-          {companies.length > 0 ? (
-            companies.map((company, index) => (
-
-              <div key={index} className="border rounded p-3 mb-3 d-flex justify-content-between">
-                <h3 className="text-primary">{company.name}</h3>
-                <p className='fw-bold'><i className="fa-solid fa-user"></i> {company.appliedCount}</p>
-              </div>
-            ))
+          {filteredCompanies.length > 0 ? (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th className='bg-info'>Job ID</th>
+                  <th className='bg-info'>Company Name</th>
+                  <th className='bg-info'>Technology</th>
+                  <th className='bg-info'>Last Date</th>
+                  <th className='bg-info'>Job Type</th>
+                  <th className='bg-info'>City</th>
+                  <th className='bg-info'>Total Applied</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCompanies.map((company, index) => (
+                  <tr key={index}>
+                    <td>{company.id}</td>
+                    <td>
+                      <Link to={`/company/${company.id}`} className='text-decoration-none fw-bold'>
+                        {company.name}
+                      </Link>
+                    </td>
+                    <td>{company.technology}</td>
+                    <td>{company.lastDate}</td>
+                    <td>{company.jobType}</td>
+                    <td>{company.city}</td>
+                    <td>{company.appliedCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           ) : (
-            <p className='text-secondary text-center fw-bold mt-5'>No Job opportunities Available.</p>
+            <p className='text-secondary text-center fw-bold mt-5'>No job opportunities available.</p>
           )}
         </div>
-      </div>
+      </Container>
     </div>
   );
 };

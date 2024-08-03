@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import OtpService from '../utils/OtpService';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [timer, setTimer] = useState(0);
-  const firstOtpInputRef = useRef(null)
+  const firstOtpInputRef = useRef(null);
 
   useEffect(() => {
     let countdown;
@@ -36,12 +37,16 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const mobileNoPattern = /^[6-9][0-9]{0,9}$/;
+
     setFormData({ ...formData, [name]: value });
 
-    if (name === 'mobileNo' && value.length !== 10) {
-      setErrors({ ...errors, mobileNo: 'Mobile number must be 10 digits' });
-    } else {
-      setErrors({ ...errors, mobileNo: '' });
+    if (name === 'mobileNo') {
+      if (value.length !== 10 || !mobileNoPattern.test(value)) {
+        setErrors({ ...errors, mobileNo: 'Mobile number must be 10 digits and start with 6, 7, 8, or 9' });
+      } else {
+        setErrors({ ...errors, mobileNo: '' });
+      }
     }
   };
 
@@ -64,21 +69,37 @@ const Login = () => {
 
   const sendOtp = async () => {
     if (formData.mobileNo.length === 10) {
-      const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
-      setOtp(generatedOtp);
-      try {
-        console.log("Sending OTP...");
-        setOtpSent(true);
-        setTimer(60);
-        await OtpService.sendOtp(formData.mobileNo, generatedOtp);
-      } catch (error) {
-        console.error("Error sending OTP:", error);
-      }
-    } else {
-      setErrors({ ...errors, mobileNo: 'Mobile number must be 10 digits' });
+    await axios.post("http://localhost:4001/login",{mobileNo:formData.mobileNo})
+    .then(async response=>{
+    console.log(response)
+   // setUser(response.data.record.fullName)
+    const generatedOtp = Math.floor(10000 + Math.random() * 90000).toString();
+    setOtp(generatedOtp);
+    try {
+    console.log("Sending OTP...");
+    setOtpSent(true);
+    setTimer(60);
+    await OtpService.sendOtp(formData.mobileNo, generatedOtp);
+    } catch (error) {
+    console.error("Error sending OTP:", error);
     }
-  };
-
+    }).catch(error=>{
+    console.error('User not Found, Please register', error);
+    console.log(error)
+    toast.warning(`${error.response.data.error}`, {
+     autoClose: 5000
+    })
+    })
+    
+    
+    }
+    
+    
+    else {
+    setErrors({ ...errors, mobileNo: 'Mobile number must be 10 digits' });
+    }
+    };
+    
   const verifyOtp = () => {
     const enteredOtp = formData.otp.join('');
     console.log("Entered OTP:", enteredOtp);
@@ -88,7 +109,7 @@ const Login = () => {
         autoClose: 5000
       });
       setOtpSent(false);
-      Cookies.set('verified',true,{expires:30});
+      Cookies.set('verified', true, { expires: 30 });
       navigate('/dashboard');
     } else {
       toast.error("Invalid OTP. Please try again.");
@@ -101,7 +122,7 @@ const Login = () => {
         <img src={ramana} alt='logo' className='rounded mb-3' style={{ width: '200px', height: 'auto' }} />
         
         <div className="border rounded shadow p-3 d-flex flex-column align-items-center bg-white" style={{ width: '100%', maxWidth: '500px' }}>
-        <h4 className='fw-bold mb-4 mt-2 text-nowrap' style={{fontFamily:'monospace'}}>Login to Continue <i className="fa-solid fa-right-to-bracket"></i></h4>
+          <h4 className='fw-bold mb-4 mt-2 text-nowrap' style={{ fontFamily: 'monospace' }}>Login to Continue <i className="fa-solid fa-right-to-bracket"></i></h4>
           <TextField
             label="Mobile No"
             variant="outlined"
